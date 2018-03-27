@@ -2436,6 +2436,7 @@ public class Calculate {
     	String s2 = s1.substring(0,s1.indexOf("."));
     	int i = Integer.parseInt(s2);//i为整数部分
     	
+
     	double  f = d - i ;//小数部分
     	int num = i / 30 ;
     	int  degree = degreel_zodiac[num] - ( i - num * 30);
@@ -2450,6 +2451,7 @@ public class Calculate {
     	int i = Integer.parseInt(s2);
     	double  f = d - i ;
     	int num = i / 30 ;
+        int afsf = 0;
     	String s3 =" : "+String.format("%02d",( i - num * 30))+full_zodiac[num%12]+String.format("%.0f", f*60); 
     	
 		return s3;

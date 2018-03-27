@@ -2439,7 +2439,7 @@ public class Calculate {
     	double  f = d - i ;//小数部分
     	int num = i / 30 ;
     	int  degree = degreel_zodiac[num] - ( i - num * 30);
-    	String s3 ="方位角-"+String.format("%03d",degree)+"度-"+name[a%12] +" : "+String.format("%02d",( i - num * 30))+full_zodiac[num%12]+ String.format("%.0f", f*60); 
+    	String s3 ="方位角-"+String.format("%03d",degree)+"度-"+name[a] +" : "+String.format("%02d",( i - num * 30))+full_zodiac[num%12]+ String.format("%.0f", f*60); 
     	
 		return s3;
 	}

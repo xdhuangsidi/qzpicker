@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">七政静盘</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+       <string name="picker_sure">确定</string>
+    <string name="picker_cancel">取消</string>
+    <string name="picker_title">选择时间</string>
+
+    <string name="picker_year">年</string>
+    <string name="picker_month">月</string>
+    <string name="picker_day">日</string>
+    <string name="picker_hour">时</string>
+    <string name="picker_minute">分</string>
+
+</resources>

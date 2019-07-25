@@ -74,22 +74,6 @@ public class BaseCalendar {
 		}
 	}
 
-	static public int[] timePeriod(int[] s_date, int day) {
-		int[] period = (int[]) s_date.clone();
-		addTime(period, Calendar.DAY_OF_MONTH, day);
-		for (int i = 2; i >= 0; i--) {
-			period[i] -= s_date[i];
-			if (period[i] < 0) {
-				if (i == 2) {
-					period[i] += 30;
-				} else if (i == 1) {
-					period[i] += 12;
-				}
-				period[i - 1]--;
-			}
-		}
-		return period;
-	}
 
 	static public String formatDate(double longitude, int[] date, int[] result,
 			double solar_adj, boolean subtract, boolean time_only) {
@@ -121,99 +105,7 @@ public class BaseCalendar {
 			return str + " " + time + " " + zone_str;
 	}
 
-	// date in GMT
-	static public String formatDate(String zone_name, int[] date, int[] result,
-			boolean adjust_dst, boolean time_only) {
-		if (zone_name == null || zone_name.equals(City.UNKNOWN_ZONE))
-			zone_name = "GMT";
-		TimeZone zone = TimeZone.getTimeZone(City.mapZoneName(zone_name));
-		initTime(date);
-		int minute = getZoneOffset(zone);
-		work_cal.add(Calendar.MINUTE, minute);
-		// date in local time zone
-		boolean in_dst = City.inDaylightTime(zone, zone_name, date[0],
-				getDate(zone));
-		if (!dst_adjust)
-			adjust_dst = false;
-		if (adjust_dst && in_dst) {
-			int delta = getDstOffset(zone);
-			work_cal.add(Calendar.MINUTE, delta);
-			minute += delta;
-		}
-		String sign = (minute < 0) ? "-" : "+";
-		if (minute < 0)
-			minute = -minute;
-		int hour = minute / 60;
-		minute -= hour * 60;
-		DecimalFormat format = new DecimalFormat("00");
-		String zone_str = zone.getDisplayName(adjust_dst && in_dst,
-				TimeZone.SHORT);
-		if (!zone_str.startsWith("GMT")) {
-			zone_str += " (GMT" + sign + hour + ":" + format.format(minute)
-					+ ")";
-		}
-		String str = getDateString();
-		if (result != null)
-			getTime(work_cal, result);
-		int h = work_cal.get(Calendar.HOUR);
-		if (h == 0)
-			h = 12;
-		String time = format.format(h) + ":"
-				+ format.format(work_cal.get(Calendar.MINUTE))
-				+ ((work_cal.get(Calendar.AM_PM) == 0) ? "AM" : "PM");
-		if (time_only)
-			return time;
-		else
-			return str + " " + time + " " + zone_str;
-	}
 
-	static public String formatDate(int[] date, boolean time_only, boolean html) {
-		initTime(date);
-		date[0] = work_cal.get(Calendar.YEAR);
-		date[1] = work_cal.get(Calendar.MONTH) + 1;
-		date[2] = work_cal.get(Calendar.DAY_OF_MONTH);
-		DecimalFormat format = new DecimalFormat("00");
-		int h = work_cal.get(Calendar.HOUR);
-		if (h == 0)
-			h = 12;
-		String str = format.format(h) + ":"
-				+ format.format(work_cal.get(Calendar.MINUTE))
-				+ ((work_cal.get(Calendar.AM_PM) == 0) ? "AM" : "PM");
-		if (time_only)
-			return str;
-		boolean bc = work_cal.get(Calendar.ERA) == GregorianCalendar.BC;
-		if (bc && !html)
-			date[0] = -date[0] + 1; // 1 B.C. is 0, 2 B.C. is -1, and so on
-		return format.format(date[1]) + "/" + format.format(date[2]) + "/"
-				+ format.format(date[0]) + ((bc && html) ? " B.C." : "") + " "
-				+ str;
-	}
-
-	// date in GMT
-	static public String formatDate(String zone_name, int[] date) {
-		if (zone_name == null || zone_name.equals(City.UNKNOWN_ZONE))
-			zone_name = "GMT";
-		TimeZone zone = TimeZone.getTimeZone(City.mapZoneName(zone_name));
-		initTime(date);
-		int minute = getZoneOffset(zone);
-		work_cal.add(Calendar.MINUTE, minute);
-		// date in local time zone
-		boolean in_dst = City.inDaylightTime(zone, zone_name, date[0],
-				getDate(zone));
-		if (dst_adjust && in_dst) {
-			int delta = getDstOffset(zone);
-			work_cal.add(Calendar.MINUTE, delta);
-			minute += delta;
-		}
-		boolean bc = (work_cal.get(Calendar.ERA) == GregorianCalendar.BC);
-		int year = work_cal.get(Calendar.YEAR);
-		int month = work_cal.get(Calendar.MONTH) + 1;
-		int day = work_cal.get(Calendar.DAY_OF_MONTH);
-		return Integer.toString(month) + "月"
-				+ Integer.toString(day) +"日"
-				+ Integer.toString(year) + "年"
-				+ (bc ? " B.C." : "");
-	}
 
 	// if mode = 1 is true, convert between dst and standard time,
 	// if mode = 0 is false, convert between GMT and local time
@@ -240,53 +132,7 @@ public class BaseCalendar {
 		getTime(work_cal, date);
 	}
 
-	static public void addZoneOffset(int[] date, boolean gmt_to_local) {
-		TimeZone zone = TimeZone.getDefault();
-		initTime(date);
-		if (gmt_to_local) {
-			int m = getZoneOffset(zone);
-			work_cal.add(Calendar.MINUTE, m);
-		}
-		if (dst_adjust
-				&& City.inDaylightTime(zone, zone.getDisplayName(), date[0],
-						getDate(zone))) {
-			int delta = getDstOffset(zone);
-			work_cal.add(Calendar.MINUTE, gmt_to_local ? delta : (-delta));
-		}
-		if (!gmt_to_local) {
-			int m = getZoneOffset(zone);
-			work_cal.add(Calendar.MINUTE, -m);
-		}
-		getTime(work_cal, date);
-	}
 
-	static public boolean withinDateRange(int[] date, int within) {
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.DAY_OF_MONTH, -within);
-		Date begin_date = cal.getTime();
-		cal.add(Calendar.DAY_OF_MONTH, 2 * within);
-		Date end_date = cal.getTime();
-		setTime(cal, date);
-		Date now_date = cal.getTime();
-		return !(now_date.before(begin_date) || now_date.after(end_date));
-	}
-
-	static public Date getDate(int[] date_buf, TimeZone zone) {
-		initTime(date_buf);
-		return getDate(zone);
-	}
-
-	static public void addTime(int[] date, int field, int val) {
-		initTime(date);
-		work_cal.add(field, val);
-		getTime(work_cal, date);
-	}
-
-	static public void getCalendar(Calendar cal, int[] date) {
-		if (cal == null)
-			cal = Calendar.getInstance();
-		getTime(cal, date);
-	}
 
 	static public void initTime(int[] date) {
 		if (work_cal == null) {
@@ -357,80 +203,4 @@ public class BaseCalendar {
 		return date;
 	}
 
-	static public String auditDay(String str, int[] date) {
-		str = str.trim().toLowerCase();
-		int am_pm = 0;
-		if (str.endsWith("am"))
-			am_pm = -1;
-		else if (str.endsWith("pm"))
-			am_pm = 1;
-		if (am_pm != 0)
-			str = str.substring(0, str.length() - 2);
-		StringTokenizer st = new StringTokenizer(str, "/,: \t");
-		if (date == null)
-			date = new int[5];
-		Arrays.fill(date, 0);
-		int i = 0;
-		boolean year_first = false;
-		while (st.hasMoreTokens() && i < 5) {
-			str = st.nextToken();
-			if (str.equals(""))
-				continue;
-			try {
-				int n = Integer.parseInt(str);
-				if (year_first) {
-					date[i] = n;
-				} else {
-					if (i == 0) {
-						if (n > 100 || n < 0) {
-							year_first = true;
-							date[0] = n;
-						} else {
-							date[1] = n;
-						}
-					} else if (i == 1) {
-						date[2] = n;
-					} else if (i == 2) {
-						date[0] = n;
-					} else {
-						date[i] = n;
-					}
-				}
-				i++;
-			} catch (NumberFormatException e) {
-			}
-		}
-		if (i < 3) {
-			BaseCalendar.getCalendar(null, date);
-		} else if (i == 5 && am_pm != 0) {
-			if (am_pm > 0) {
-				if (date[3] != 12)
-					date[3] += 12;
-			} else {
-				if (date[3] == 12)
-					date[3] = 0;
-			}
-		}
-		return BaseCalendar.formatDate(date, false, false);
-	}
-
-	static public void pushSetDstAdjust(boolean set) {
-		dst_adjust_save = dst_adjust;
-		dst_adjust = set;
-	}
-
-	static public void popDstAdjust() {
-		dst_adjust = dst_adjust_save;
-	}
-
-	static public void setDstAdjust(boolean set) {
-		dst_adjust = set;
-	}
-
-	static public boolean getDstAdjust() {
-		return dst_adjust;
-	}
-
-	public void getCalendar(int[] date) {
-	}
 }

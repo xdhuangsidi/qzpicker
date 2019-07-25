@@ -156,15 +156,6 @@ public class SwissLib {
   }
 
 
-  public double swi_angnorm(double x) {
-    if (x < 0.0 ) {
-      return x + SwephData.TWOPI;
-    } else if (x >= SwephData.TWOPI) {
-      return x - SwephData.TWOPI;
-    } else {
-      return x;
-    }
-  }
 
   public void swi_cross_prod(double a[], int aOffs, double b[], int bOffs,
                              double x[], int xOffs) {
@@ -245,37 +236,6 @@ public class SwissLib {
     xpn[  nOffs] = x[0] * SwissData.RADTODEG;
     xpn[1+nOffs] = x[1] * SwissData.RADTODEG;
     xpn[2+nOffs] = xpo[2+oOffs];
-  }
-
-  /*
-   * conversion between ecliptical and equatorial polar coordinates
-   * with speed.
-   * for users of SWISSEPH, not used by our routines.
-   * for ecl. to equ.  eps must be negative.
-   * for equ. to ecl.  eps must be positive.
-   * xpo, xpn are arrays of 6 doubles containing position and speed.
-   * attention: input must be in degrees!
-   */
-  public void swe_cotrans_sp(double xpo[], double xpn[], double eps) {
-    int i;
-    double x[]=new double[6], e = eps * SwissData.DEGTORAD;
-    for (i = 0; i <= 5; i++)
-      x[i] = xpo[i];
-    x[0] *= SwissData.DEGTORAD;
-    x[1] *= SwissData.DEGTORAD;
-    x[2] = 1;     /* avoids problems with polcart(), if x[2] = 0 */
-    x[3] *= SwissData.DEGTORAD;
-    x[4] *= SwissData.DEGTORAD;
-    swi_polcart_sp(x, x);
-    swi_coortrf(x, x, e);
-    swi_coortrf(x, 3, x, 3, e);
-    swi_cartpol_sp(x, xpn);
-    xpn[0] *= SwissData.RADTODEG;
-    xpn[1] *= SwissData.RADTODEG;
-    xpn[2] = xpo[2];
-    xpn[3] *= SwissData.RADTODEG;
-    xpn[4] *= SwissData.RADTODEG;
-    xpn[5] = xpo[5];
   }
 
   /*
